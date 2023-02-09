@@ -1,0 +1,722 @@
+﻿<krpano version="1.20.11" title="Virtual Tour">
+
+	<include url="skin/vtourskin.xml" />
+
+	<!-- customize skin settings: maps, gyro, webvr, thumbnails, tooltips, layout, design, ... -->
+	<skin_settings maps="false"
+	               maps_type="google"
+	               maps_bing_api_key=""
+	               maps_google_api_key=""
+	               maps_zoombuttons="false"
+	               maps_loadonfirstuse="false"
+	               gyro="true"
+	               gyro_keeplookingdirection="false"
+	               webvr="true"
+	               webvr_keeplookingdirection="false"
+	               webvr_prev_next_hotspots="false"
+	               autotour="true"
+	               littleplanetintro="false"
+	               followmousecontrol="false"
+	               title="false"
+	               thumbs="false"
+	               thumbs_width="120" thumbs_height="80" thumbs_padding="10" thumbs_crop="0|40|240|160"
+	               thumbs_opened="false"
+	               thumbs_text="false"
+	               thumbs_dragging="true"
+	               thumbs_onhoverscrolling="false"
+	               thumbs_scrollbuttons="false"
+	               thumbs_scrollindicator="false"
+	               thumbs_loop="false"
+	               tooltips_buttons="false"
+	               tooltips_thumbs="false"
+	               tooltips_hotspots="false"
+	               tooltips_mapspots="false"
+	               deeplinking="false"
+	               loadscene_flags="MERGE"
+	               loadscene_blend="OPENBLEND(0.5, 0.0, 0.75, 0.05, linear)"
+	               loadscene_blend_prev="SLIDEBLEND(0.5, 180, 0.75, linear)"
+	               loadscene_blend_next="SLIDEBLEND(0.5,   0, 0.75, linear)"
+	               loadingtext=""
+	               layout_width="100%"
+	               layout_maxwidth="814"
+	               controlbar_width="-24"
+	               controlbar_height="30"
+	               controlbar_offset="-100"
+	               controlbar_offset_closed="-40"
+	               controlbar_overlap.no-fractionalscaling="10"
+	               controlbar_overlap.fractionalscaling="0"
+	               design_skin_images="vtourskin.png"
+	               design_bgcolor="0x2D3E50"
+	               design_bgalpha="0.8"
+	               design_bgborder="0"
+	               design_bgroundedge="1"
+	               design_bgshadow="0 4 10 0x000000 0.3"
+	               design_thumbborder_bgborder="3 0xFFFFFF 1.0"
+	               design_thumbborder_padding="04"
+	               design_thumbborder_bgroundedge="0"
+	               design_text_css="color:#FFFFFF; font-family:Arial;"
+	               design_text_shadow="1"
+	               />
+
+
+
+<style name="infospot"
+		type="text"
+		css="color:#FFFFFF; font-size:40px; font-weight:bold; text-align:center;"
+		width="80" height="80"
+		bgroundedge="42"
+		bgalpha="0.75"
+		bgcolor="0x555555"
+		bgborder="1 0xFFFFFF 1"
+		bgshadow="0 0 16 0x0 0.5"
+		txtshadow="0 0 3 0x0 1.0"
+		mergedalpha="false"
+		vcenter="true"
+		oversampling="04"
+		mipmapping="true"
+		zoom="true"
+		capture="false"
+		/>
+	<!-- startup action - load the first scene -->
+	<action name="startup" autorun="onstart">
+		if(startscene === null OR !scene[get(startscene)], copy(startscene,scene[0].name); );
+		loadscene(get(startscene), null, MERGE);
+		if(startactions !== null, startactions() );
+	</action>
+
+<action name="toggle_pano_info_box">
+	  	if(layer[introimage].status EQ closed,
+			set(layer[introimage].status,'open');				
+			set(layer[introimage].visible,true);	
+			,
+			set(layer[introimage].visible,false); 
+			set(layer[introimage].status,'closed');
+			);
+</action>
+
+
+
+<!-- nadir logo (a distorted hotspot) -->
+	<hotspot name="nadirlogo" keep="true"
+	         url="skin/cipreses.png"
+	         ath="0"
+	         atv="270"
+	         distorted="false"
+	         scale="1"
+	         rotate="0.0"
+	      	 onclick="loadscene(scene_MASTERPLAN,null, MERGE, BLEND(1));"
+	         />
+
+	<!-- onviewchange event - update logo rotation on pano rotation -->
+	<events name="nadirlogo" keep="true" onviewchange="copy(hotspot[nadirlogo].rotate, view.hlookat);" />
+
+
+<!-- SONIDO
+
+	 -->
+
+	<plugin name="soundinterface" url.flash="%SWFPATH%/plugins/soundinterface.swf" url.html5="%SWFPATH%/plugins/soundinterface.js" rootpath="" preload="true" keep="true"/>
+
+	!--  start playing the sound  -->
+	<events name="currentpano" onnewpano="playsound(bgsnd, 'https://krpano.com/panos/xmas/ding_dong_merrily_on_high.mp3|https://krpano.com/panos/xmas/ding_dong_merrily_on_high.ogg', 0);" onremovepano="stopsound(bgsnd);"/>
+	<!--  a button to pause/play the sound  
+-->
+	<plugin name="snd" url="soundonoff.png" align="leftbottom" x="10" y="10" alpha="0.25" scale="0.5" onover="tween(alpha,1);" onout="tween(alpha,0.25);" crop="0|0|50|50" onclick="pausesoundtoggle(bgsnd); switch(crop, 0|0|50|50, 0|50|50|50);"/>
+
+<!-- LOGO Y INFOGRAFIA DIPOSNIBILIDAD-->
+ 
+	
+	<display autofullscreen="true"
+			stereo="false"
+			stereooverlap="0.0"
+			stereoscale="1.0"
+			monoside="1"
+			anaglyph="false"
+			safearea="auto"
+			mipmapping="auto"
+			loadwhilemoving="auto"
+			framebufferscale="1.0"
+			hotspotvrrendering="natural"
+			hotspotworldscale="04.0"
+			depthmaprendermode="depthmap"
+			depthbuffer="false"
+			depthrange="0.1,100000"
+			surfacesubdiv="100"
+			/>
+
+	<!--<layer name="disp" url="skin/disp.png" scale="0.24" keep="true" enabled="false" align="righttop" x="-3" y="3"/>
+		-->	
+	<layer name="volver" url="skin/dron.svg" align="lefttop" scale="0.5" onclick="loadscene(scene_masterplan,null, MERGE, BLEND(1));" x="20" y="20" keep="true"/>
+	<layer name="fullscreen" url="skin/fullscreen.svg" align="lefttop" scale="0.6" onclick="switch(fullscreen);" devices="fullscreensupport" x="-10" y="90" keep="true"/>
+
+
+<!-- grid preview pano -->
+	<preview type="grid(cube,16,16,512,0xCCCCCC,0xFFFFFF,0x999999);" />
+
+	
+<!-- enable autorotation -->
+
+	<autorotate enabled="true" waittime="3.0" accel="0.5" speed="1" horizon="0" tofov="100" />
+	
+
+
+	<!--
+	    For an alternative skin design either change the <skin_settings> values 
+	    from above or optionally include one of the predefined designs from below.
+	-->
+	<!-- <include url="skin/vtourskin_design_flat_light.xml"  /> -->
+	<!-- <include url="skin/vtourskin_design_glass.xml"       /> -->
+	<!-- <include url="skin/vtourskin_design_ultra_light.xml" /> -->
+	<!-- <include url="skin/vtourskin_design_117.xml"         /> -->
+	<!-- <include url="skin/vtourskin_design_117round.xml"    /> -->
+	<!-- <include url="skin/vtourskin_design_black.xml"       /> -->
+
+	<scene name="scene_masterplan" title="masterplan" onstart="" thumburl="panos/masterplan.tiles/thumb.jpg" lat="" lng="" heading="">
+		
+
+<!-- compass with rotating plate -->
+		<layer name="compass2" url="skin/compass_bg.png" align="righttop" x="0" y="0" children="false"  destscale="0.075" >
+			<layer name="compass2_plate"   url="skin/compass_ring.svg"   align="center"  zorder="04" scale="0.6" rotate="" />
+			<layer name="compass2_pointer" url="skin/compass_pointer.svg" align="center" x="0" y="0"  zorder="3" scale="0.75" rotate="0" />
+			<layer name="compass2_ring"    url="skin/compass_plate.svg"    align="center" zorder="1" scale="0.65"/>
+		</layer>
+
+		<!-- view changing eeent -->
+		<events name="compass_events" onviewchange="compass_update_rotate();" />
+		<!-- update the rotation values -->
+		<action name="compass_update_rotate">
+			set(global_heading, 250);
+			calc(plugin[compass1_pointer].rotate, view.hlookat - global_heading);
+			calc(plugin[compass2_plate].rotate,  global_heading - view.hlookat);
+		</action>
+
+
+
+		<control bouncinglimits="calc:image.cube ? true : false" />
+
+		<view hlookat="90.0" vlookat="85.0" fovtype="MFOV" fov="120" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+	<preview url="panos/masterplan.tiles/preview.jpg" />
+
+		<image>
+			<cube url="panos/masterplan.tiles/%s/l%l/%0v/l%l_%s_%0v_%0h.jpg" multires="512,1024,1792,3648,7296" />
+		</image>
+
+		<!-- LUPAS (ICONOS) -->
+		<hotspot name="spot149" style="skin_hotspotstyle" ath="-133.986" atv="24.922" linkedscene="scene_lupa1" />
+		
+		
+		
+		<hotspot name="spot153" style="skin_hotspotstyle" ath="-116.224" atv="29.398" linkedscene="scene_4" />
+		
+		
+		
+		
+		<hotspot name="spot158" style="skin_hotspotstyle" ath="-146.869" atv="14.517" linkedscene="scene_1" />
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<hotspot name="spot168" style="skin_hotspotstyle" ath="-125.210" atv="29.227" linkedscene="scene_3" />
+		
+		
+		
+		<hotspot name="spot172" style="skin_hotspotstyle" ath="-139.674" atv="10.134"  linkedscene="scene_5" />
+		
+		
+		<hotspot name="spot174" style="skin_hotspotstyle_pin_1" ath="172.272" atv="6.915"  />
+		
+		<hotspot name="spot176" style="skin_hotspotstyle_pin_3" ath="177.533" atv="-1.852"  />
+		<hotspot name="spot177" style="skin_hotspotstyle_pin_4" ath="91.969" atv="-2.507"  />
+		
+		<hotspot name="spot179" style="skin_hotspotstyle_pin_6" ath="-83.317" atv="-1.662"  />
+		
+		<hotspot name="spot181" style="skin_hotspotstyle_pin_8" ath="-116.059" atv="6.695"  />
+		
+		
+		
+		
+		
+		
+		
+		<hotspot name="spot190" style="skin_hotspotstyle_isotipo_green" ath="82.389" atv="30.628"  />
+		<hotspot name="spot100" style="skin_hotspotstyle" ath="-129.279" atv="9.881" linkedscene="scene_6" />
+		<hotspot name="spot200" style="skin_hotspotstyle" ath="-145.165" atv="7.908" linkedscene="scene_8" />
+		<hotspot name="spot300" style="skin_hotspotstyle" ath="-141.667" atv="20.198" linkedscene="scene_9" />
+		<hotspot name="spot400" style="skin_hotspotstyle" ath="-114.625" atv="35.358" linkedscene="scene_10" />
+		<hotspot name="spot500" style="skin_hotspotstyle" ath="-117.715" atv="41.933" linkedscene="scene_11" />
+		<hotspot name="spot600" style="skin_hotspotstyle" ath="-111.179" atv="44.797" linkedscene="scene_12" />
+		<hotspot name="spot700" style="skin_hotspotstyle" ath="161.401" atv="41.590" linkedscene="scene_20" />
+		<hotspot name="spot800" style="skin_hotspotstyle" ath="1.654" atv="40.042" linkedscene="scene_20" />
+		
+
+
+		<!-- HOTSPOTS FUNDO RIO VISTA HERMOSA -->
+
+
+				
+						<hotspot name="spot1" style="sskin_hotspotstyle0"  ath="3.726" atv="57.582" onout="popup_close();" onclick="popup('html', get(data[data_html_example1].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						
+						<hotspot name="spot3" style="sskin_hotspotstyle2" ath="9.992" atv="62.288" onout="popup_close();" onclick="popup('html', get(data[data_html_example3].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot4" style="sskin_hotspotstyle3" ath="12.411" atv="60.153" onout="popup_close();" onclick="popup('html', get(data[data_html_example4].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot5" style="sskin_hotspotstyle4" ath="13.971" atv="55.785" onout="popup_close();" onclick="popup('html', get(data[data_html_example5].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot6" style="sskin_hotspotstyle5" ath="6.620" atv="56.143" onout="popup_close();" onclick="popup('html', get(data[data_html_example6].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot7" style="sskin_hotspotstyle6" ath="7.037" atv="54.109" onout="popup_close();" onclick="popup('html', get(data[data_html_example7].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot8" style="sskin_hotspotstyle7" ath="7.352" atv="52.287" onout="popup_close();" onclick="popup('html', get(data[data_html_example8].content), 250, 180, true);" scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot9" style="sskin_hotspotstyle8" ath="13.334" atv="52.278" onout="popup_close();" onclick="popup('html', get(data[data_html_example9].content), 250, 180, true);" scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot10" style="sskin_hotspotstyle9" ath="7.147" atv="50.221" onout="popup_close();" onclick="popup('html', get(data[data_html_example10].content), 250, 180, true);" scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot11" style="sskin_hotspotstyle10" ath="12.972" atv="49.499" onout="popup_close();" onclick="popup('html', get(data[data_html_example11].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot12" style="sskin_hotspotstyle11" ath="7.247" atv="48.493" onout="popup_close();" onclick="popup('html', get(data[data_html_example12].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot13" style="sskin_hotspotstyle12" ath="12.887" atv="46.674" onout="popup_close();" onclick="popup('html', get(data[data_html_example13].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot14" style="sskin_hotspotstyle13" ath="7.923" atv="46.799" onout="popup_close();" onclick="popup('html', get(data[data_html_example14].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot15" style="sskin_hotspotstyle14" ath="8.377" atv="44.870" onout="popup_close();" onclick="popup('html', get(data[data_html_example15].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot16" style="sskin_hotspotstyle15" ath="12.064" atv="43.538" onout="popup_close();" onclick="popup('html', get(data[data_html_example16].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot17" style="sskin_hotspotstyle16" ath="7.813" atv="43.073" onout="popup_close();" onclick="popup('html', get(data[data_html_example17].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot18" style="sskin_hotspotstyle17" ath="8.093" atv="41.535" onout="popup_close();" onclick="popup('html', get(data[data_html_example18].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot19" style="sskin_hotspotstyle18" ath="11.737" atv="40.793"   onout="popup_close();" onclick="popup('html', get(data[data_html_example19].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot20" style="sskin_hotspotstyle19" ath="7.983" atv="39.948"   onout="popup_close();" onclick="popup('html', get(data[data_html_example20].content), 250, 180, true);" scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot21" style="sskin_hotspotstyle20" ath="11.168" atv="37.824"   onout="popup_close();" onclick="popup('html', get(data[data_html_example21].content), 250, 180, true);" scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot22" style="sskin_hotspotstyle21" ath="8.169" atv="38.584"   onout="popup_close();" onclick="popup('html', get(data[data_html_example22].content), 250, 180, true);" scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot23" style="sskin_hotspotstyle22" ath="8.229" atv="37.324"   onout="popup_close();" onclick="popup('html', get(data[data_html_example23].content), 250, 180, true);" scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot24" style="sskin_hotspotstyle23" ath="26.850" atv="63.366"   onout="popup_close();" onclick="popup('html', get(data[data_html_example24].content), 250, 180, true);" scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot25" style="sskin_hotspotstyle24" ath="19.948" atv="59.252"   onout="popup_close();" onclick="popup('html', get(data[data_html_example25].content), 250, 180, true);" scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot26" style="sskin_hotspotstyle25" ath="27.308" atv="61.035"   onout="popup_close();" onclick="popup('html', get(data[data_html_example26].content), 250, 180, true);" scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot27" style="sskin_hotspotstyle26" ath="27.783" atv="58.627"   onout="popup_close();" onclick="popup('html', get(data[data_html_example27].content), 250, 180, true);" scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot28" style="sskin_hotspotstyle27" ath="28.575" atv="56.400"   onout="popup_close();" onclick="popup('html', get(data[data_html_example28].content), 250, 180, true);" scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot29" style="sskin_hotspotstyle28" ath="27.293" atv="54.551"   onout="popup_close();" onclick="popup('html', get(data[data_html_example29].content), 250, 180, true);" scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot30" style="sskin_hotspotstyle29" ath="19.043" atv="55.564"   onout="popup_close();" onclick="popup('html', get(data[data_html_example30].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);"/>
+						<hotspot name="spot31" style="sskin_hotspotstyle30" ath="25.585" atv="52.550" onout="popup_close();" onclick="popup('html', get(data[data_html_example31].content), 250, 180, true);" scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot32" style="sskin_hotspotstyle31" ath="23.940" atv="50.259" onout="popup_close();" onclick="popup('html', get(data[data_html_example32].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot33" style="sskin_hotspotstyle32" ath="18.816" atv="51.367" onout="popup_close();" onclick="popup('html', get(data[data_html_example33].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot34" style="sskin_hotspotstyle33" ath="22.776" atv="46.973" onout="popup_close();" onclick="popup('html', get(data[data_html_example34].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot35" style="sskin_hotspotstyle34" ath="17.991" atv="48.274" onout="popup_close();" onclick="popup('html', get(data[data_html_example35].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot36" style="sskin_hotspotstyle35" ath="17.326" atv="45.380" onout="popup_close();" onclick="popup('html', get(data[data_html_example36].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot37" style="sskin_hotspotstyle36" ath="21.620" atv="43.944" onout="popup_close();" onclick="popup('html', get(data[data_html_example37].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot38" style="sskin_hotspotstyle37" ath="22.574" atv="41.912" onout="popup_close();" onclick="popup('html', get(data[data_html_example38].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot39" style="sskin_hotspotstyle38" ath="16.544" atv="42.904" onout="popup_close();" onclick="popup('html', get(data[data_html_example39].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot40" style="sskin_hotspotstyle39" ath="21.682" atv="40.339" onout="popup_close();" onclick="popup('html', get(data[data_html_example40].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot41" style="sskin_hotspotstyle40" ath="14.336" atv="40.423" onout="popup_close();" onclick="popup('html', get(data[data_html_example41].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot42" style="sskin_hotspotstyle41" ath="18.457" atv="39.111" onout="popup_close();" onclick="popup('html', get(data[data_html_example42].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot43" style="sskin_hotspotstyle42" ath="17.599" atv="37.498" onout="popup_close();" onclick="popup('html', get(data[data_html_example43].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot44" style="sskin_hotspotstyle43" ath="13.204" atv="37.115" onout="popup_close();" onclick="popup('html', get(data[data_html_example44].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot45" style="sskin_hotspotstyle44" ath="16.846" atv="36.332" onout="popup_close();" onclick="popup('html', get(data[data_html_example45].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+						<hotspot name="spot46" style="sskin_hotspotstyle45" ath="16.538" atv="34.705" onout="popup_close();" onclick="popup('html', get(data[data_html_example45].content), 250, 180, true);"  scale="0.03" onover.addevent="tween(scale,0.04);" onout.addevent="tween(scale,0.03);" />
+
+
+					    <hotspot name="bspot1" style="skin_hotspotstyle1"  ath="-83.548" atv="62.504" onout="popup_close();" onclick="popup('html', get(data[data_html_example1].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);"/>
+						<hotspot name="bspot2" style="skin_hotspotstyle2" ath="-77.500" atv="64.805" onout="popup_close();" onclick="popup('html', get(data[data_html_example2].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot3" style="skin_hotspotstyle3" ath="-72.885" atv="67.062" onout="popup_close();" onclick="popup('html', get(data[data_html_example3].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot4" style="skin_hotspotstyle4" ath="-68.170" atv="69.473" onout="popup_close();" onclick="popup('html', get(data[data_html_example4].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot5" style="skin_hotspotstyle5" ath="-87.939" atv="64.070" onout="popup_close();" onclick="popup('html', get(data[data_html_example5].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot6" style="skin_hotspotstyle6" ath="-85.666" atv="68.096" onout="popup_close();" onclick="popup('html', get(data[data_html_example6].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot7" style="skin_hotspotstyle7" ath="-93.740" atv="65.916" onout="popup_close();" onclick="popup('html', get(data[data_html_example7].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot8" style="skin_hotspotstyle8" ath="-99.780" atv="67.685" onout="popup_close();" onclick="popup('html', get(data[data_html_example8].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot9" style="skin_hotspotstyle9" ath="-87.486" atv="73.277" onout="popup_close();" onclick="popup('html', get(data[data_html_example9].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot10" style="skin_hotspotstyle10" ath="-81.104" atv="70.468" onout="popup_close();" onclick="popup('html', get(data[data_html_example10].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot11" style="skin_hotspotstyle11" ath="-75.023" atv="72.521" onout="popup_close();" onclick="popup('html', get(data[data_html_example11].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot12" style="skin_hotspotstyle12" ath="-65.650" atv="74.233" onout="popup_close();" onclick="popup('html', get(data[data_html_example12].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot13" style="skin_hotspotstyle13" ath="-72.368" atv="78.739" onout="popup_close();" onclick="popup('html', get(data[data_html_example13].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot14" style="skin_hotspotstyle14" ath="-54.382" atv="74.703" onout="popup_close();" onclick="popup('html', get(data[data_html_example14].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot15" style="skin_hotspotstyle15" ath="-54.357" atv="79.280" onout="popup_close();" onclick="popup('html', get(data[data_html_example15].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot16" style="skin_hotspotstyle16" ath="-95.879" atv="82.267" onout="popup_close();" onclick="popup('html', get(data[data_html_example16].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot17" style="skin_hotspotstyle17" ath="-52.855" atv="83.866" onout="popup_close();" onclick="popup('html', get(data[data_html_example17].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot18" style="skin_hotspotstyle18" ath="-46.430" atv="85.979" onout="popup_close();" onclick="popup('html', get(data[data_html_example18].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot19" style="skin_hotspotstyle19" ath="-145.290" atv="83.166"   onout="popup_close();" onclick="popup('html', get(data[data_html_example19].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot20" style="skin_hotspotstyle20" ath="-139.892" atv="87.134"   onout="popup_close();" onclick="popup('html', get(data[data_html_example20].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />	
+						<hotspot name="bspot21" style="skin_hotspotstyle21" ath="151.402" atv="86.616"   onout="popup_close();" onclick="popup('html', get(data[data_html_example21].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot22" style="skin_hotspotstyle22" ath="157.259" atv="82.450"   onout="popup_close();" onclick="popup('html', get(data[data_html_example22].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot23" style="skin_hotspotstyle23" ath="93.087" atv="84.798"   onout="popup_close();" onclick="popup('html', get(data[data_html_example23].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot24" style="skin_hotspotstyle24" ath="15.816" atv="86.949"   onout="popup_close();" onclick="popup('html', get(data[data_html_example24].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot25" style="skin_hotspotstyle25" ath="57.796" atv="82.962"   onout="popup_close();" onclick="popup('html', get(data[data_html_example25].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot26" style="skin_hotspotstyle26" ath="99.552" atv="81.650"   onout="popup_close();" onclick="popup('html', get(data[data_html_example26].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot27" style="skin_hotspotstyle27" ath="105.127" atv="78.588"   onout="popup_close();" onclick="popup('html', get(data[data_html_example27].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot28" style="skin_hotspotstyle28" ath="89.350" atv="75.251"   onout="popup_close();" onclick="popup('html', get(data[data_html_example28].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot29" style="skin_hotspotstyle29" ath="129.517" atv="79.453"   onout="popup_close();" onclick="popup('html', get(data[data_html_example29].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot30" style="skin_hotspotstyle30" ath="129.520" atv="74.129"   onout="popup_close();" onclick="popup('html', get(data[data_html_example30].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot31" style="skin_hotspotstyle31" ath="113.616" atv="74.497" onout="popup_close();" onclick="popup('html', get(data[data_html_example31].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot32" style="skin_hotspotstyle32" ath="-93.644" atv="74.944" onout="popup_close();" onclick="popup('html', get(data[data_html_example32].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot33" style="skin_hotspotstyle33" ath="-106.010" atv="68.862" onout="popup_close();" onclick="popup('html', get(data[data_html_example33].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot34" style="skin_hotspotstyle34" ath="-106.438" atv="71.258" onout="popup_close();" onclick="popup('html', get(data[data_html_example34].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot35" style="skin_hotspotstyle35" ath="-108.070" atv="73.927" onout="popup_close();" onclick="popup('html', get(data[data_html_example35].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot36" style="skin_hotspotstyle36" ath="-111.120" atv="76.696" onout="popup_close();" onclick="popup('html', get(data[data_html_example36].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot37" style="skin_hotspotstyle37" ath="-91.034" atv="78.417" onout="popup_close();" onclick="popup('html', get(data[data_html_example37].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot38" style="skin_hotspotstyle38" ath="-119.154" atv="80.704" onout="popup_close();" onclick="popup('html', get(data[data_html_example38].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot39" style="skin_hotspotstyle39" ath="-128.275" atv="78.093" onout="popup_close();" onclick="popup('html', get(data[data_html_example39].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot40" style="skin_hotspotstyle40" ath="-152.588" atv="75.250" onout="popup_close();" onclick="popup('html', get(data[data_html_example40].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot41" style="skin_hotspotstyle41" ath="-151.968" atv="79.997" onout="popup_close();" onclick="popup('html', get(data[data_html_example41].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot42" style="skin_hotspotstyle42" ath="-167.527" atv="77.338" onout="popup_close();" onclick="popup('html', get(data[data_html_example42].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot43" style="skin_hotspotstyle43" ath="175.047" atv="79.293" onout="popup_close();" onclick="popup('html', get(data[data_html_example43].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot44" style="skin_hotspotstyle44" ath="161.547" atv="74.297" onout="popup_close();" onclick="popup('html', get(data[data_html_example44].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot45" style="skin_hotspotstyle45" ath="155.834" atv="78.241" onout="popup_close();" onclick="popup('html', get(data[data_html_example45].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot46" style="skin_hotspotstyle46" ath="147.125" atv="75.068" onout="popup_close();" onclick="popup('html', get(data[data_html_example46].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot47" style="skin_hotspotstyle47" ath="137.435" atv="71.968" onout="popup_close();" onclick="popup('html', get(data[data_html_example47].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot48" style="skin_hotspotstyle48" ath="149.754" atv="70.904" onout="popup_close();" onclick="popup('html', get(data[data_html_example48].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot49" style="skin_hotspotstyle49" ath="144.038" atv="66.821"   onout="popup_close();" onclick="popup('html', get(data[data_html_example49].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot50" style="skin_hotspotstyle50" ath="130.158" atv="68.581"   onout="popup_close();" onclick="popup('html', get(data[data_html_example50].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot51" style="skin_hotspotstyle51" ath="133.265" atv="64.974"   onout="popup_close();" onclick="popup('html', get(data[data_html_example51].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot52" style="skin_hotspotstyle52" ath="147.656" atv="62.663"   onout="popup_close();" onclick="popup('html', get(data[data_html_example52].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot53" style="skin_hotspotstyle53" ath="135.913" atv="62.249"   onout="popup_close();" onclick="popup('html', get(data[data_html_example53].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot54" style="skin_hotspotstyle54" ath="146.777" atv="58.346"   onout="popup_close();" onclick="popup('html', get(data[data_html_example54].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);"  />
+						<hotspot name="bspot55" style="skin_hotspotstyle55" ath="135.864" atv="60.395"   onout="popup_close();" onclick="popup('html', get(data[data_html_example55].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot56" style="skin_hotspotstyle56" ath="135.903" atv="58.282"   onout="popup_close();" onclick="popup('html', get(data[data_html_example56].content), 250, 180, true);"  scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot57" style="skin_hotspotstyle57" ath="137.807" atv="56.481"   onout="popup_close();" onclick="popup('html', get(data[data_html_example57].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot58" style="skin_hotspotstyle58" ath="146.534" atv="54.250"   onout="popup_close();" onclick="popup('html', get(data[data_html_example58].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot59" style="skin_hotspotstyle59" ath="138.268" atv="54.845"   onout="popup_close();" onclick="popup('html', get(data[data_html_example59].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot60" style="skin_hotspotstyle60" ath="137.653" atv="53.278"   onout="popup_close();" onclick="popup('html', get(data[data_html_example60].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot61" style="skin_hotspotstyle61" ath="133.576" atv="52.581" onout="popup_close();" onclick="popup('html', get(data[data_html_example61].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" /> 
+						<hotspot name="bspot62" style="skin_hotspotstyle62" ath="143.624" atv="49.913" onout="popup_close();" onclick="popup('html', get(data[data_html_example62].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot63" style="skin_hotspotstyle63" ath="132.852" atv="51.373" onout="popup_close();" onclick="popup('html', get(data[data_html_example63].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot64" style="skin_hotspotstyle64" ath="130.155" atv="50.259" onout="popup_close();" onclick="popup('html', get(data[data_html_example64].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot65" style="skin_hotspotstyle65" ath="132.318" atv="49.333" onout="popup_close();" onclick="popup('html', get(data[data_html_example65].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot66" style="skin_hotspotstyle66" ath="134.388" atv="48.596" onout="popup_close();" onclick="popup('html', get(data[data_html_example66].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot67" style="skin_hotspotstyle67" ath="-170.105" atv="74.196" onout="popup_close();" onclick="popup('html', get(data[data_html_example67].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot68" style="skin_hotspotstyle68" ath="-175.394" atv="71.564" onout="popup_close();" onclick="popup('html', get(data[data_html_example68].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot69" style="skin_hotspotstyle69" ath="168.778" atv="72.029" onout="popup_close();" onclick="popup('html', get(data[data_html_example69].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot70" style="skin_hotspotstyle70" ath="159.804" atv="68.271" onout="popup_close();" onclick="popup('html', get(data[data_html_example70].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot71" style="skin_hotspotstyle71" ath="168.192" atv="66.564" onout="popup_close();" onclick="popup('html', get(data[data_html_example71].content), 250, 180, true);"  scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot72" style="skin_hotspotstyle72" ath="154.855" atv="64.201" onout="popup_close();" onclick="popup('html', get(data[data_html_example71].content), 250, 180, true);"  scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot73" style="skin_hotspotstyle73" ath="160.886" atv="62.689" onout="popup_close();" onclick="popup('html', get(data[data_html_example71].content), 250, 180, true);"  scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot74" style="skin_hotspotstyle74" ath="152.346" atv="60.305" onout="popup_close();" onclick="popup('html', get(data[data_html_example71].content), 250, 180, true);"  scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot75" style="skin_hotspotstyle75" ath="156.577" atv="59.004" onout="popup_close();" onclick="popup('html', get(data[data_html_example71].content), 250, 180, true);"  scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="bspot76" style="skin_hotspotstyle76" ath="150.603" atv="55.789" onout="popup_close();" onclick="popup('html', get(data[data_html_example71].content), 250, 180, true);"  scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+	
+
+						<hotspot name="cspot1" style="sssskin_hotspotstyle1"   ath="-37.648" atv="70.847" onout="popup_close();" onclick="popup('html', get(data[data_html_example1].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);"/>
+						<hotspot name="cspot2" style="sssskin_hotspotstyle2"   ath="-45.816" atv="77.295" onout="popup_close();" onclick="popup('html', get(data[data_html_example2].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot3" style="sssskin_hotspotstyle3"   ath="-34.288" atv="74.827" onout="popup_close();" onclick="popup('html', get(data[data_html_example3].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot4" style="sssskin_hotspotstyle4"   ath="-25.384" atv="72.507" onout="popup_close();" onclick="popup('html', get(data[data_html_example4].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot5" style="sssskin_hotspotstyle5"   ath="-21.373" atv="69.230" onout="popup_close();" onclick="popup('html', get(data[data_html_example5].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot6" style="sssskin_hotspotstyle6"   ath="-7.256" atv="69.083" onout="popup_close();" onclick="popup('html', get(data[data_html_example6].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot7" style="sssskin_hotspotstyle7"   ath="-10.298" atv="66.672" onout="popup_close();" onclick="popup('html', get(data[data_html_example7].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot8" style="sssskin_hotspotstyle8"   ath="-2.204" atv="63.946" onout="popup_close();" onclick="popup('html', get(data[data_html_example8].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot9" style="sssskin_hotspotstyle9"   ath="1.415" atv="66.294" onout="popup_close();" onclick="popup('html', get(data[data_html_example9].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot10" style="sssskin_hotspotstyle10" ath="7.253" atv="63.969" onout="popup_close();" onclick="popup('html', get(data[data_html_example10].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot11" style="sssskin_hotspotstyle11" ath="0.001" atv="60.452" onout="popup_close();" onclick="popup('html', get(data[data_html_example11].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot12" style="sssskin_hotspotstyle12" ath="-23.403" atv="75.290" onout="popup_close();" onclick="popup('html', get(data[data_html_example12].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot13" style="sssskin_hotspotstyle13" ath="-31.333" atv="79.544" onout="popup_close();" onclick="popup('html', get(data[data_html_example13].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot14" style="sssskin_hotspotstyle14" ath="-9.568" atv="74.134" onout="popup_close();" onclick="popup('html', get(data[data_html_example14].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot15" style="sssskin_hotspotstyle15" ath="-20.811" atv="81.551" onout="popup_close();" onclick="popup('html', get(data[data_html_example15].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot16" style="sssskin_hotspotstyle16" ath="1.242" atv="77.845" onout="popup_close();" onclick="popup('html', get(data[data_html_example16].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot17" style="sssskin_hotspotstyle17" ath="14.824" atv="82.828" onout="popup_close();" onclick="popup('html', get(data[data_html_example17].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot18" style="sssskin_hotspotstyle18" ath="30.166" atv="79.426" onout="popup_close();" onclick="popup('html', get(data[data_html_example18].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot19" style="sssskin_hotspotstyle19" ath="56.927" atv="79.542"   onout="popup_close();" onclick="popup('html', get(data[data_html_example19].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot20" style="sssskin_hotspotstyle20" ath="66.849" atv="76.357"   onout="popup_close();" onclick="popup('html', get(data[data_html_example20].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />	
+						<hotspot name="cspot21" style="sssskin_hotspotstyle21" ath="57.424" atv="74.865"   onout="popup_close();" onclick="popup('html', get(data[data_html_example21].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot22" style="sssskin_hotspotstyle22" ath="40.528" atv="72.575"   onout="popup_close();" onclick="popup('html', get(data[data_html_example22].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot23" style="sssskin_hotspotstyle23" ath="32.905" atv="70.659"   onout="popup_close();" onclick="popup('html', get(data[data_html_example23].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot24" style="sssskin_hotspotstyle24" ath="27.871" atv="68.070"   onout="popup_close();" onclick="popup('html', get(data[data_html_example24].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot25" style="sssskin_hotspotstyle25" ath="25.050" atv="65.812"   onout="popup_close();" onclick="popup('html', get(data[data_html_example25].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot26" style="sssskin_hotspotstyle26" ath="15.555" atv="66.623"   onout="popup_close();" onclick="popup('html', get(data[data_html_example26].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot27" style="sssskin_hotspotstyle27" ath="16.665" atv="71.978"   onout="popup_close();" onclick="popup('html', get(data[data_html_example27].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot28" style="sssskin_hotspotstyle28" ath="11.631" atv="75.557"   onout="popup_close();" onclick="popup('html', get(data[data_html_example28].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot29" style="sssskin_hotspotstyle29" ath="5.603" atv="72.806"   onout="popup_close();" onclick="popup('html', get(data[data_html_example29].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot30" style="sssskin_hotspotstyle30" ath="6.839" atv="68.762"   onout="popup_close();" onclick="popup('html', get(data[data_html_example30].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="cspot31" style="sssskin_hotspotstyle31" ath="-5.939" atv="72.059"   onout="popup_close();" onclick="popup('html', get(data[data_html_example30].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+					
+						
+
+ 						<hotspot name="dspot1" style="ssskin_hotspotstyle1"  ath="142.703" atv="46.413" onout="popup_close();" onclick="popup('html', get(data[data_html_example1].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);"/>
+						<hotspot name="dspot2" style="ssskin_hotspotstyle2" ath="139.464" atv="46.508" onout="popup_close();" onclick="popup('html', get(data[data_html_example2].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot3" style="ssskin_hotspotstyle3" ath="138.845" atv="42.323" onout="popup_close();" onclick="popup('html', get(data[data_html_example3].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot4" style="ssskin_hotspotstyle4" ath="143.356" atv="42.959" onout="popup_close();" onclick="popup('html', get(data[data_html_example4].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot5" style="ssskin_hotspotstyle5" ath="143.822" atv="39.216" onout="popup_close();" onclick="popup('html', get(data[data_html_example5].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot6" style="ssskin_hotspotstyle6" ath="146.238" atv="40.941" onout="popup_close();" onclick="popup('html', get(data[data_html_example6].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot7" style="ssskin_hotspotstyle7" ath="149.756" atv="38.217" onout="popup_close();" onclick="popup('html', get(data[data_html_example7].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot8" style="ssskin_hotspotstyle8" ath="148.336" atv="36.883" onout="popup_close();" onclick="popup('html', get(data[data_html_example8].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot9" style="ssskin_hotspotstyle9" ath="153.192" atv="37.263" onout="popup_close();" onclick="popup('html', get(data[data_html_example9].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot10" style="ssskin_hotspotstyle10" ath="153.506" atv="35.127" onout="popup_close();" onclick="popup('html', get(data[data_html_example10].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot11" style="ssskin_hotspotstyle11" ath="156.105" atv="36.282" onout="popup_close();" onclick="popup('html', get(data[data_html_example11].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot12" style="ssskin_hotspotstyle12" ath="158.515" atv="33.548" onout="popup_close();" onclick="popup('html', get(data[data_html_example12].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot13" style="ssskin_hotspotstyle13" ath="159.647" atv="35.488" onout="popup_close();" onclick="popup('html', get(data[data_html_example13].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot14" style="ssskin_hotspotstyle14" ath="162.674" atv="32.685" onout="popup_close();" onclick="popup('html', get(data[data_html_example14].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot15" style="ssskin_hotspotstyle15" ath="162.969" atv="33.999" onout="popup_close();" onclick="popup('html', get(data[data_html_example15].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot16" style="ssskin_hotspotstyle16" ath="166.324" atv="33.546" onout="popup_close();" onclick="popup('html', get(data[data_html_example16].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot17" style="ssskin_hotspotstyle17" ath="170.394" atv="31.560" onout="popup_close();" onclick="popup('html', get(data[data_html_example17].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot18" style="ssskin_hotspotstyle18" ath="169.713" atv="33.359" onout="popup_close();" onclick="popup('html', get(data[data_html_example18].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot19" style="ssskin_hotspotstyle19" ath="172.911" atv="32.308"   onout="popup_close();" onclick="popup('html', get(data[data_html_example19].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot20" style="ssskin_hotspotstyle20" ath="176.711" atv="31.031"   onout="popup_close();" onclick="popup('html', get(data[data_html_example20].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />	
+						<hotspot name="dspot21" style="ssskin_hotspotstyle21" ath="177.570" atv="29.162"   onout="popup_close();" onclick="popup('html', get(data[data_html_example21].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot22" style="ssskin_hotspotstyle22" ath="176.818" atv="27.914"   onout="popup_close();" onclick="popup('html', get(data[data_html_example22].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot23" style="ssskin_hotspotstyle23" ath="170.302" atv="30.080"   onout="popup_close();" onclick="popup('html', get(data[data_html_example23].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot24" style="ssskin_hotspotstyle24" ath="173.756" atv="28.118"   onout="popup_close();" onclick="popup('html', get(data[data_html_example24].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot25" style="ssskin_hotspotstyle25" ath="170.716" atv="28.460"   onout="popup_close();" onclick="popup('html', get(data[data_html_example25].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot26" style="ssskin_hotspotstyle26" ath="167.487" atv="29.062"   onout="popup_close();" onclick="popup('html', get(data[data_html_example26].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot27" style="ssskin_hotspotstyle27" ath="163.610" atv="31.016"   onout="popup_close();" onclick="popup('html', get(data[data_html_example27].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot28" style="ssskin_hotspotstyle28" ath="163.912" atv="29.137"   onout="popup_close();" onclick="popup('html', get(data[data_html_example28].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot29" style="ssskin_hotspotstyle29" ath="161.295" atv="29.687"   onout="popup_close();" onclick="popup('html', get(data[data_html_example29].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot30" style="ssskin_hotspotstyle30" ath="157.973" atv="32.026"   onout="popup_close();" onclick="popup('html', get(data[data_html_example30].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot31" style="ssskin_hotspotstyle31" ath="158.308" atv="30.415" onout="popup_close();" onclick="popup('html', get(data[data_html_example31].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot32" style="ssskin_hotspotstyle32" ath="155.786" atv="30.790" onout="popup_close();" onclick="popup('html', get(data[data_html_example32].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot33" style="ssskin_hotspotstyle33" ath="154.195" atv="33.288" onout="popup_close();" onclick="popup('html', get(data[data_html_example33].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot34" style="ssskin_hotspotstyle34" ath="153.199" atv="31.430" onout="popup_close();" onclick="popup('html', get(data[data_html_example34].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot35" style="ssskin_hotspotstyle35" ath="150.328" atv="32.030" onout="popup_close();" onclick="popup('html', get(data[data_html_example35].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot36" style="ssskin_hotspotstyle36" ath="149.436" atv="34.073" onout="popup_close();" onclick="popup('html', get(data[data_html_example36].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot37" style="ssskin_hotspotstyle37" ath="146.643" atv="33.189" onout="popup_close();" onclick="popup('html', get(data[data_html_example37].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot38" style="ssskin_hotspotstyle38" ath="145.647" atv="36.172" onout="popup_close();" onclick="popup('html', get(data[data_html_example38].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot39" style="ssskin_hotspotstyle39" ath="143.974" atv="34.441" onout="popup_close();" onclick="popup('html', get(data[data_html_example39].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot40" style="ssskin_hotspotstyle40" ath="140.648" atv="35.042" onout="popup_close();" onclick="popup('html', get(data[data_html_example40].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot41" style="ssskin_hotspotstyle41" ath="141.560" atv="37.548" onout="popup_close();" onclick="popup('html', get(data[data_html_example41].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot42" style="ssskin_hotspotstyle42" ath="138.142" atv="36.642" onout="popup_close();" onclick="popup('html', get(data[data_html_example42].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot43" style="ssskin_hotspotstyle43" ath="137.408" atv="37.715" onout="popup_close();" onclick="popup('html', get(data[data_html_example43].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot44" style="ssskin_hotspotstyle44" ath="137.532" atv="41.039" onout="popup_close();" onclick="popup('html', get(data[data_html_example44].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot45" style="ssskin_hotspotstyle45" ath="135.804" atv="38.814" onout="popup_close();" onclick="popup('html', get(data[data_html_example45].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot46" style="ssskin_hotspotstyle46" ath="133.525" atv="40.605" onout="popup_close();" onclick="popup('html', get(data[data_html_example46].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot47" style="ssskin_hotspotstyle47" ath="131.607" atv="42.051" onout="popup_close();" onclick="popup('html', get(data[data_html_example47].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot48" style="ssskin_hotspotstyle48" ath="135.167" atv="43.598" onout="popup_close();" onclick="popup('html', get(data[data_html_example48].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot49" style="ssskin_hotspotstyle49" ath="129.952" atv="44.348"   onout="popup_close();" onclick="popup('html', get(data[data_html_example49].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot50" style="ssskin_hotspotstyle50" ath="130.165" atv="46.740"   onout="popup_close();" onclick="popup('html', get(data[data_html_example50].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						<hotspot name="dspot51" style="ssskin_hotspotstyle51" ath="135.841" atv="46.693"   onout="popup_close();" onclick="popup('html', get(data[data_html_example51].content), 250, 180, true);" scale="0.04" onover.addevent="tween(scale,0.05);" onout.addevent="tween(scale,0.04);" />
+						
+						
+						
+						
+						
+						
+						
+						
+
+
+	</scene>
+	
+	<scene name="scene_1" title="1" onstart="" thumburl="panos/1.tiles/thumb.jpg" lat="-36.48900083" lng="-71.47178861" heading="0.0">
+		
+		<control bouncinglimits="calc:image.cube ? true : false" />
+
+		<view hlookat="0.0" vlookat="0.0" fovtype="MFOV" fov="120" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+		<preview url="panos/1.tiles/preview.jpg" />
+
+		<image>
+			<cube url="panos/1.tiles/%s/l%l/%0v/l%l_%s_%0v_%0h.jpg" multires="512,1024,2112,4224,8448" />
+		</image>
+
+	</scene>
+
+	<scene name="scene_2" title="2" onstart="" thumburl="panos/2.tiles/thumb.jpg" lat="-36.48216472" lng="-71.46100250" heading="0.0">
+		
+		<control bouncinglimits="calc:image.cube ? true : false" />
+
+		<view hlookat="0.0" vlookat="0.0" fovtype="MFOV" fov="120" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+		<preview url="panos/2.tiles/preview.jpg" />
+
+		<image>
+			<cube url="panos/2.tiles/%s/l%l/%0v/l%l_%s_%0v_%0h.jpg" multires="512,1024,2112,4224,8448" />
+		</image>
+
+	</scene>
+
+	<scene name="scene_3" title="3" onstart="" thumburl="panos/3.tiles/thumb.jpg" lat="-36.47678222" lng="-71.44944528" heading="0.0">
+		
+		<control bouncinglimits="calc:image.cube ? true : false" />
+
+		<view hlookat="0.0" vlookat="0.0" fovtype="MFOV" fov="120" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+		<preview url="panos/3.tiles/preview.jpg" />
+
+		<image>
+			<cube url="panos/3.tiles/%s/l%l/%0v/l%l_%s_%0v_%0h.jpg" multires="512,1024,2112,4224,8448" />
+		</image>
+
+	</scene>
+
+	<scene name="scene_4" title="4" onstart="" thumburl="panos/4.tiles/thumb.jpg" lat="-36.47652778" lng="-71.44121361" heading="0.0">
+		
+		<control bouncinglimits="calc:image.cube ? true : false" />
+
+		<view hlookat="0.0" vlookat="0.0" fovtype="MFOV" fov="120" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+		<preview url="panos/4.tiles/preview.jpg" />
+
+		<image>
+			<cube url="panos/4.tiles/%s/l%l/%0v/l%l_%s_%0v_%0h.jpg" multires="512,1024,2112,4224,8448" />
+		</image>
+
+	</scene>
+
+	<scene name="scene_5" title="5" onstart="" thumburl="panos/5.tiles/thumb.jpg" lat="-36.48157944" lng="-71.48072167" heading="0.0">
+		
+		<control bouncinglimits="calc:image.cube ? true : false" />
+
+		<view hlookat="0.0" vlookat="0.0" fovtype="MFOV" fov="120" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+		<preview url="panos/5.tiles/preview.jpg" />
+
+		<image>
+			<cube url="panos/5.tiles/%s/l%l/%0v/l%l_%s_%0v_%0h.jpg" multires="512,1024,2112,4224,8448" />
+		</image>
+
+	</scene>
+
+	<scene name="scene_6" title="6" onstart="" thumburl="panos/6.tiles/thumb.jpg" lat="-36.47548778" lng="-71.47642250" heading="0.0">
+		
+		<control bouncinglimits="calc:image.cube ? true : false" />
+
+		<view hlookat="0.0" vlookat="0.0" fovtype="MFOV" fov="120" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+		<preview url="panos/6.tiles/preview.jpg" />
+
+		<image>
+			<cube url="panos/6.tiles/%s/l%l/%0v/l%l_%s_%0v_%0h.jpg" multires="512,1024,2112,4224,8448" />
+		</image>
+
+	</scene>
+
+	<scene name="scene_7" title="7" onstart="" thumburl="panos/7.tiles/thumb.jpg" lat="-36.46987917" lng="-71.48180500" heading="0.0">
+		
+		<control bouncinglimits="calc:image.cube ? true : false" />
+
+		<view hlookat="0.0" vlookat="0.0" fovtype="MFOV" fov="120" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+		<preview url="panos/7.tiles/preview.jpg" />
+
+		<image>
+			<cube url="panos/7.tiles/%s/l%l/%0v/l%l_%s_%0v_%0h.jpg" multires="512,1024,2112,4224,8448" />
+		</image>
+
+	</scene>
+
+	<scene name="scene_8" title="8" onstart="" thumburl="panos/8.tiles/thumb.jpg" lat="-36.47346333" lng="-71.49022306" heading="0.0">
+		
+		<control bouncinglimits="calc:image.cube ? true : false" />
+
+		<view hlookat="0.0" vlookat="0.0" fovtype="MFOV" fov="120" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+		<preview url="panos/8.tiles/preview.jpg" />
+
+		<image>
+			<cube url="panos/8.tiles/%s/l%l/%0v/l%l_%s_%0v_%0h.jpg" multires="512,1024,2112,4224,8448" />
+		</image>
+
+	</scene>
+
+	<scene name="scene_9" title="9" onstart="" thumburl="panos/9.tiles/thumb.jpg" lat="-36.48361778" lng="-71.46952083" heading="0.0">
+		
+		<control bouncinglimits="calc:image.cube ? true : false" />
+
+		<view hlookat="0.0" vlookat="0.0" fovtype="MFOV" fov="120" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+		<preview url="panos/9.tiles/preview.jpg" />
+
+		<image>
+			<cube url="panos/9.tiles/%s/l%l/%0v/l%l_%s_%0v_%0h.jpg" multires="512,1024,2112,4224,8448" />
+		</image>
+
+	</scene>
+
+	<scene name="scene_10" title="10" onstart="" thumburl="panos/10.tiles/thumb.jpg" lat="-36.48632528" lng="-71.45283444" heading="0.0">
+		
+		<control bouncinglimits="calc:image.cube ? true : false" />
+
+		<view hlookat="0.0" vlookat="0.0" fovtype="MFOV" fov="120" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+		<preview url="panos/10.tiles/preview.jpg" />
+
+		<image>
+			<cube url="panos/10.tiles/%s/l%l/%0v/l%l_%s_%0v_%0h.jpg" multires="512,1024,2112,4224,8448" />
+		</image>
+
+	</scene>
+
+	<scene name="scene_11" title="11" onstart="" thumburl="panos/11.tiles/thumb.jpg" lat="-36.48968667" lng="-71.44469500" heading="0.0">
+		
+		<control bouncinglimits="calc:image.cube ? true : false" />
+
+		<view hlookat="0.0" vlookat="0.0" fovtype="MFOV" fov="120" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+		<preview url="panos/11.tiles/preview.jpg" />
+
+		<image>
+			<cube url="panos/11.tiles/%s/l%l/%0v/l%l_%s_%0v_%0h.jpg" multires="512,1024,2112,4224,8448" />
+		</image>
+
+	</scene>
+
+	<scene name="scene_12" title="12" onstart="" thumburl="panos/12.tiles/thumb.jpg" lat="-36.49111778" lng="-71.43895694" heading="0.0">
+		
+		<control bouncinglimits="calc:image.cube ? true : false" />
+
+		<view hlookat="0.0" vlookat="0.0" fovtype="MFOV" fov="120" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+		<preview url="panos/12.tiles/preview.jpg" />
+
+		<image>
+			<cube url="panos/12.tiles/%s/l%l/%0v/l%l_%s_%0v_%0h.jpg" multires="512,1024,2112,4224,8448" />
+		</image>
+
+	</scene>
+
+	<scene name="scene_20" title="20" onstart="" thumburl="panos/20.tiles/thumb.jpg" lat="" lng="" heading="">
+		
+<!-- compass with rotating plate -->
+		<layer name="compass2" url="skin/compass_bg.png" align="righttop" x="0" y="0" children="false"  destscale="0.075" >
+			<layer name="compass2_plate"   url="skin/compass_ring.svg"   align="center"  zorder="04" scale="0.6" rotate="" />
+			<layer name="compass2_pointer" url="skin/compass_pointer.svg" align="center" x="0" y="0"  zorder="3" scale="0.75" rotate="0" />
+			<layer name="compass2_ring"    url="skin/compass_plate.svg"    align="center" zorder="1" scale="0.65"/>
+		</layer>
+
+		<!-- view changing eeent -->
+		<events name="compass_events" onviewchange="compass_update_rotate();" />
+		<!-- update the rotation values -->
+		<action name="compass_update_rotate">
+			set(global_heading, 210);
+			calc(plugin[compass1_pointer].rotate, view.hlookat - global_heading);
+			calc(plugin[compass2_plate].rotate,  global_heading - view.hlookat);
+		</action>
+
+
+		<control bouncinglimits="calc:image.cube ? true : false" />
+
+		<view hlookat="0.0" vlookat="0.0" fovtype="MFOV" fov="120" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+		<preview url="panos/20.tiles/preview.jpg" />
+
+		<image>
+			<cube url="panos/20.tiles/%s/l%l/%0v/l%l_%s_%0v_%0h.jpg" multires="512,1024,1792,3648,7296" />
+		</image>
+		<hotspot name="spot1" style="skin_hotspotstyle" ath="127.137" atv="10.564" linkedscene="scene_masterplan" />
+		<hotspot name="spot2" style="skin_hotspotstyle" ath="89.301" atv="-1.325" linkedscene="scene_21" />
+
+	</scene>
+
+	<scene name="scene_21" title="21" onstart="" thumburl="panos/21.tiles/thumb.jpg" lat="" lng="" heading="">
+		
+<!-- compass with rotating plate -->
+		<layer name="compass2" url="skin/compass_bg.png" align="righttop" x="0" y="0" children="false"  destscale="0.075" >
+			<layer name="compass2_plate"   url="skin/compass_ring.svg"   align="center"  zorder="04" scale="0.6" rotate="" />
+			<layer name="compass2_pointer" url="skin/compass_pointer.svg" align="center" x="0" y="0"  zorder="3" scale="0.75" rotate="0" />
+			<layer name="compass2_ring"    url="skin/compass_plate.svg"    align="center" zorder="1" scale="0.65"/>
+		</layer>
+
+
+		<!-- view changing eeent -->
+		<events name="compass_events" onviewchange="compass_update_rotate();" />
+		<!-- update the rotation values -->
+		<action name="compass_update_rotate">
+			set(global_heading, 20);
+			calc(plugin[compass1_pointer].rotate, view.hlookat - global_heading);
+			calc(plugin[compass2_plate].rotate,  global_heading - view.hlookat);
+		</action>
+
+
+		<control bouncinglimits="calc:image.cube ? true : false" />
+
+		<view hlookat="0.0" vlookat="0.0" fovtype="MFOV" fov="120" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+		<preview url="panos/21.tiles/preview.jpg" />
+
+		<image>
+			<cube url="panos/21.tiles/%s/l%l/%0v/l%l_%s_%0v_%0h.jpg" multires="512,1024,1792,3648,7296" />
+		</image>
+		<hotspot name="spot1" style="skin_hotspotstyle" ath="97.820" atv="11.063" linkedscene="scene_masterplan" />
+		<hotspot name="spot2" style="skin_hotspotstyle" ath="129.250" atv="2.918" linkedscene="scene_20" />
+
+	</scene>
+
+
+</krpano>
